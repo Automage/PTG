@@ -50,10 +50,6 @@ int meshIndiciesSize;
 /* Terrain Mesh */
 Mesh *mesh;
 
-/* Terrain variables */
-const int worldDimX = 50, worldDimZ = 50;
-float world[worldDimX][worldDimZ];
-
 void openGLInit() {
 	/* Set clear color */
 	glClearColor(1.0, 1.0, 1.0, 0.0);
@@ -123,7 +119,7 @@ void special(int key, int x, int y)
 void keyboard(unsigned char k, int x, int y)
 {
 	/* Show which key was pressed */
-	std::cout << "Pressed \"" << k << "\" ASCII: " << (int)k << std::endl;
+	// std::cout << "Pressed \"" << k << "\" ASCII: " << (int)k << std::endl;
 
 	if (k == 'd') {
 		// std::cout << "Rotating +y" << std::endl;
@@ -207,75 +203,6 @@ void display()
     glutSwapBuffers();
 }
 
-void generateMesh() {
-	/* Generate terrain */
-	std::srand(std::time(nullptr));
-	std::default_random_engine generator;
-  	std::normal_distribution<float> distribution(2.0,0.25);
-
-	for (int i = 0; i < 50; i++) {
-		for (int j = 0; j < 50; j++) {
-			// world[i][j] = std::rand() % 6;
-			world[i][j] = distribution(generator);
-			// std::cout << world[i][j] << std::endl;
-		}
-	}
-
-	/* Calculate plane verticies + indicies */
-	// 3 coordinates for every vertex/point in tilemap
-	meshVerticiesSize = 3 * (worldDimX + 1) * (worldDimZ + 1);
-	float *verts = new float[meshVerticiesSize * sizeof(float)];
-
-	// 2 triangles * 3 verts/tri * num tiles
-	meshIndiciesSize = 2 * 3 * worldDimX * worldDimZ;
-	GLushort *indicies = new GLushort[meshIndiciesSize * sizeof(GLushort)];
-
-	// Calculate verticies (+ 1 for tiles -> verticies)
-	std::cout << worldDimX << ", " << worldDimZ << std::endl;
-	int w = 0;
-	for (int z = 0; z < (worldDimZ + 1); z++) {
-		for (int x = 0; x < (worldDimX + 1); x++) {
-			
-			// 3 coordinates per vertex
-			int base = 3 * ((z * (worldDimX + 1)) + x);
-			verts[base + 0] = x;
-			verts[base + 1] = world[x][z];
-			// verts[base + 1] = 0.0;
-			verts[base + 2] = z;
-		}
-	}
-
-	// Calculate indicies (2 tris per tile)
-	std::cout << "Indicies:" << std::endl;
-	for (int z = 0; z < worldDimZ; z++) {
-		for (int x = 0; x < worldDimX; x++) {
-			/*
-			 * |2 /|
-			 * | / |
-			 * |/ 1|
-			 */
-
-			// 6 indicies stored per tile
-			int base = 2 * 3 * ((z * worldDimX) + x);
-
-			// (worldDimX + 1) for tiles -> verticies
-			// Triangle 1 (0,0), (0,1), (1,1)
-			indicies[base + 0] = (z * (worldDimX + 1)) + x;
-			indicies[base + 1] = (z * (worldDimX + 1)) + (x + 1);
-			indicies[base + 2] = ((z + 1) * (worldDimX + 1)) + (x + 1);
-			
-			// Triangle 2 (0,0), (1,0), (1,1)
-			indicies[base + 3] = (z * (worldDimX + 1)) + x;
-			indicies[base + 4] = ((z + 1) * (worldDimX + 1)) + x;
-			indicies[base + 5] = ((z + 1) * (worldDimX + 1)) + (x + 1);
-			std::cout << "(" << x << ", " << z << "):" << base << "\t(" << (int)indicies[base] << ", " << (int)indicies[base + 1] << ", " << (int)indicies[base + 2] << ") (" << (int)indicies[base + 3] << ", " << (int)indicies[base + 4] << ", " << (int)indicies[base + 5] << ")" << std::endl;
-		}
-	}
-
-	meshVerticies = verts;
-	meshIndicies = indicies;
-}
-
 int main(int argc, char **argv) {
     /* Initialize the GLUT window */
 	glutInit(&argc, argv);
@@ -293,8 +220,7 @@ int main(int argc, char **argv) {
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(special);
 
-	// Generate mesh + calculate plane verticies 
-	// generateMesh();
+	// Generate Mesh
 	mesh = new Mesh(50, 50);
 	mesh->generateMesh();
 
