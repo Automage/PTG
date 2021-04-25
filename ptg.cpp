@@ -18,6 +18,8 @@
 #include "GL/glut.h"
 #endif
 
+#include "mesh.h"
+
 /* Window Variables */
 int windowWidth = 800;
 int windowHeight = 	800;
@@ -40,25 +42,17 @@ GLfloat myModelMat[4][4] = {
 };
 
 /* Geometry variables */
-// float tileVertices[12] = {
-//      0.0,  0.0,  0.0,        // (0,0)
-//      0.0,  0.0,  1.0,        // (0,1)
-// 	 1.0,  0.0,  1.0,        // (1,1)
-// 	 1.0,  0.0,  0.0,        // (0,1)
-// };
-
-// GLubyte tileIndices[6] = {
-//     0, 1, 2,	// Triangles for the top face
-// 	0, 3, 2,	// Triangles for the top face
-// };
 float *meshVerticies;
 GLushort *meshIndicies;
 int meshVerticiesSize;
 int meshIndiciesSize;
 
+/* Terrain Mesh */
+Mesh *mesh;
+
 /* Terrain variables */
-const int worldDimX = 16, worldDimZ = 16;
-int world[worldDimX][worldDimZ];
+const int worldDimX = 50, worldDimZ = 50;
+float world[worldDimX][worldDimZ];
 
 void openGLInit() {
 	/* Set clear color */
@@ -194,34 +188,13 @@ void display()
 	glEnableClientState(GL_VERTEX_ARRAY);
 	
 	/* Draw the world */
-	// for(int i = 0; i < worldDimX - 1; i += 1) {
-	// 	for(int j = 0; j < worldDimZ - 1; j += 1) {
-	// 		// Calculate tile verticies (2 triangles which may not be on the same plane)
-	// 		float tileVertices2[12] = {
-	// 			0.0,  world[i][j],  0.0,        // (0,0)
-	// 			0.0,  world[i][j + 1],  1.0,        // (0,1)
-	// 			1.0,  world[i + 1][j + 1],  1.0,        // (1,1)
-	// 			1.0,  world[i + 1][j],  0.0,        // (0,1)
-	// 		};
-
-	// 		glVertexPointer(3, GL_FLOAT, 0, tileVertices2);
-	// 		glPushMatrix();
-	// 		glTranslatef(i, 0.0, j);
-	// 		glColor3f(0.0, 0.0, 1.0);
-	// 		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_BYTE, tileIndices);
-	// 		glColor3f(0.0, 0.0, 0.0);
-	// 		glDrawElements(GL_LINE_STRIP, 12, GL_UNSIGNED_BYTE, tileIndices);
-	// 		glPopMatrix();
-	// 	}
-	// }
-
-	glVertexPointer(3, GL_FLOAT, 0, meshVerticies);
+	glVertexPointer(3, GL_FLOAT, 0, mesh->verts);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0.0);
 	glColor3f(0.0, 0.0, 1.0);
-	glDrawElements(GL_TRIANGLES, meshIndiciesSize, GL_UNSIGNED_SHORT, meshIndicies);
+	glDrawElements(GL_TRIANGLES, mesh->indiciesSize, GL_UNSIGNED_SHORT, mesh->indicies);
 	glColor3f(1.0, 0.0, 0.0);
-	glDrawElements(GL_LINE_STRIP, meshIndiciesSize, GL_UNSIGNED_SHORT, meshIndicies);
+	glDrawElements(GL_LINE_STRIP, mesh->indiciesSize, GL_UNSIGNED_SHORT, mesh->indicies);
 	glPopMatrix();
 	
 	/* Disable client */
@@ -238,7 +211,7 @@ void generateMesh() {
 	/* Generate terrain */
 	std::srand(std::time(nullptr));
 	std::default_random_engine generator;
-  	std::normal_distribution<float> distribution(5.0,2.0);
+  	std::normal_distribution<float> distribution(2.0,0.25);
 
 	for (int i = 0; i < 50; i++) {
 		for (int j = 0; j < 50; j++) {
@@ -266,8 +239,8 @@ void generateMesh() {
 			// 3 coordinates per vertex
 			int base = 3 * ((z * (worldDimX + 1)) + x);
 			verts[base + 0] = x;
-			// verts[base + 1] = (float) world[x][z];
-			verts[base + 1] = 0.0;
+			verts[base + 1] = world[x][z];
+			// verts[base + 1] = 0.0;
 			verts[base + 2] = z;
 		}
 	}
@@ -321,10 +294,12 @@ int main(int argc, char **argv) {
 	glutSpecialFunc(special);
 
 	// Generate mesh + calculate plane verticies 
-	generateMesh();
+	// generateMesh();
+	mesh = new Mesh(50, 50);
+	mesh->generateMesh();
 
-	std::cout << meshVerticiesSize << std::endl;
-	std::cout << meshIndiciesSize << std::endl;
+	std::cout << mesh->vertsSize << std::endl;
+	std::cout << mesh->indiciesSize << std::endl;
 	// std::cout << "Indicies:" << std::endl;
 	// for (int i = 0; i < meshIndiciesSize; i++)
 	// {
