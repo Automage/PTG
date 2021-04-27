@@ -22,13 +22,14 @@ class Mesh {
         int vertsSize;
         int indiciesSize;
 
-        Mesh(int dimX, int dimZ);
+        Mesh(int dimX, int dimZ, uint32_t seed);
         ~Mesh();
         void generateMesh();
     
     private:
         // Heightmap
         float *hmap;
+        uint32_t seed;
         
         void generateGaussianHeightMap();
         void generateHeightMap();

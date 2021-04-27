@@ -13,7 +13,7 @@
 #include "PerlinNoise/PerlinNoise.hpp"
 
 
-Mesh::Mesh(int dimX, int dimZ) : worldDimX(dimX), worldDimZ(dimZ) {
+Mesh::Mesh(int dimX, int dimZ, uint32_t s) : worldDimX(dimX), worldDimZ(dimZ), seed(s) {
     // Init heightmap
     hmap = new float[worldDimX * worldDimZ];
 }
@@ -39,18 +39,19 @@ void Mesh::generateGaussianHeightMap() {
 
 void Mesh::generateHeightMap() {
     /* Generate terrain */
-    std::uint32_t seed = std::default_random_engine::default_seed;
     siv::BasicPerlinNoise<float> perlin(seed);
     int octaves = 5;
     float frequency = 2.0;
+    float maxh = 10.0;
 
     float fx = worldDimX / frequency;
     float fz = worldDimZ / frequency;
 
     for (std::int32_t z = 0; z < worldDimZ; z++) {
         for (std::int32_t x = 0; x < worldDimX; x++) {
+            // TODO: Introduce clamp
             float r = perlin.accumulatedOctaveNoise2D_0_1(x / fx, z / fz, octaves);
-            hmap[(z * worldDimX) + x] = (r * 10.0) - 5.0;
+            hmap[(z * worldDimX) + x] = (r * maxh) - (maxh / 2.0);
         }
     }
 }

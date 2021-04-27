@@ -21,11 +21,11 @@
 #include "mesh.h"
 
 /* Window Variables */
-int windowWidth = 1200;
+int windowWidth = 800;
 int windowHeight = 	800;
 
 /* Camera Variables */
-float fovy = 45.0;
+float fovy = 60.0;
 float aspect = windowWidth / windowHeight;
 float zNear = 1.0;
 float zFar = 100.0;
@@ -41,14 +41,9 @@ GLfloat myModelMat[4][4] = {
 	{ 0, -1, 0, 1 }
 };
 
-/* Geometry variables */
-float *meshVerticies;
-GLushort *meshIndicies;
-int meshVerticiesSize;
-int meshIndiciesSize;
-
 /* Terrain Mesh */
 Mesh *mesh;
+// Mesh *mesh2;
 
 void openGLInit() {
 	/* Set clear color */
@@ -187,10 +182,20 @@ void display()
 	glVertexPointer(3, GL_FLOAT, 0, mesh->verts);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0.0);
-	glColor3f(0.0, 0.0, 1.0);
+	glColor3f(0.92, 0.71, 0.20);
 	glDrawElements(GL_TRIANGLES, mesh->indiciesSize, GL_UNSIGNED_SHORT, mesh->indicies);
-	glColor3f(1.0, 0.0, 0.0);
-	glDrawElements(GL_LINE_STRIP, mesh->indiciesSize, GL_UNSIGNED_SHORT, mesh->indicies);
+	glColor3f(0.0, 0.0, 0.0);
+	// DO NOT USE GL_LINE_STRIP: Causes weird random lines
+	glDrawElements(GL_LINES, mesh->indiciesSize, GL_UNSIGNED_SHORT, mesh->indicies);
+
+	// glVertexPointer(3, GL_FLOAT, 0, mesh2->verts);
+	// glTranslatef(0.0, 0.0, 0.0);
+	// glColor3f(0.0, 0.0, 1.0);
+	// glDrawElements(GL_TRIANGLES, mesh2->indiciesSize, GL_UNSIGNED_SHORT, mesh2->indicies);
+	// glColor3f(0.0, 0.0, 0.0);
+	// // DO NOT USE GL_LINE_STRIP: Causes weird random lines
+	// glDrawElements(GL_LINES, mesh->indiciesSize, GL_UNSIGNED_SHORT, mesh->indicies);
+
 	glPopMatrix();
 	
 	/* Disable client */
@@ -221,23 +226,27 @@ int main(int argc, char **argv) {
 	glutSpecialFunc(special);
 
 	// Generate Mesh
-	mesh = new Mesh(50, 50);
+	mesh = new Mesh(50, 50, std::default_random_engine::default_seed);
 	mesh->generateMesh();
+
+	// mesh2 = new Mesh(50, 50, 1023);
+	// mesh2->generateMesh();
 
 	std::cout << mesh->vertsSize << std::endl;
 	std::cout << mesh->indiciesSize << std::endl;
+	
 	// std::cout << "Indicies:" << std::endl;
-	// for (int i = 0; i < meshIndiciesSize; i++)
+	// for (int i = 0; i < mesh->indiciesSize; i++)
 	// {
-	// 	std::cout << (int)(meshIndicies[i]) << " ";
+	// 	std::cout << (int)(mesh->indicies[i]) << " ";
 	// 	if ((i+1) % 3 == 0) std::cout << std::endl;
 	// 	if ((i+1) % 6 == 0) std::cout << std::endl;
 	// }
 
 	// std::cout << "Verticies:" << std::endl;
-	// for (int i = 0; i < meshVerticiesSize; i++)
+	// for (int i = 0; i < mesh->vertsSize; i++)
 	// {
-	// 	std::cout << (float)(meshVerticies[i]) << " ";
+	// 	std::cout << (float)(mesh->verts[i]) << " ";
 	// 	if ((i+1) % 3 == 0) std::cout << std::endl;
 	// 	if ((i+1) % 9 == 0) std::cout << std::endl;
 	// }
