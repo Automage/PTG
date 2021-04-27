@@ -30,6 +30,7 @@ class Mesh {
         // Heightmap
         float *hmap;
         
+        void generateGaussianHeightMap();
         void generateHeightMap();
 
 };

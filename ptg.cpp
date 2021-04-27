@@ -21,7 +21,7 @@
 #include "mesh.h"
 
 /* Window Variables */
-int windowWidth = 800;
+int windowWidth = 1200;
 int windowHeight = 	800;
 
 /* Camera Variables */

@@ -10,6 +10,9 @@
 #include <iostream>
 #include <random>
 
+#include "PerlinNoise/PerlinNoise.hpp"
+
+
 Mesh::Mesh(int dimX, int dimZ) : worldDimX(dimX), worldDimZ(dimZ) {
     // Init heightmap
     hmap = new float[worldDimX * worldDimZ];
@@ -21,7 +24,7 @@ Mesh::~Mesh() {
     delete[] indicies;
 }
 
-void Mesh::generateHeightMap() {
+void Mesh::generateGaussianHeightMap() {
     /* Generate terrain */
     std::srand(std::time(nullptr));
     std::default_random_engine generator;
@@ -34,8 +37,27 @@ void Mesh::generateHeightMap() {
     }
 }
 
+void Mesh::generateHeightMap() {
+    /* Generate terrain */
+    std::uint32_t seed = std::default_random_engine::default_seed;
+    siv::BasicPerlinNoise<float> perlin(seed);
+    int octaves = 5;
+    float frequency = 2.0;
+
+    float fx = worldDimX / frequency;
+    float fz = worldDimZ / frequency;
+
+    for (std::int32_t z = 0; z < worldDimZ; z++) {
+        for (std::int32_t x = 0; x < worldDimX; x++) {
+            float r = perlin.accumulatedOctaveNoise2D_0_1(x / fx, z / fz, octaves);
+            hmap[(z * worldDimX) + x] = (r * 10.0) - 5.0;
+        }
+    }
+}
+
 void Mesh::generateMesh() {
     // Procedural generation
+    // generateGaussianHeightMap();
     generateHeightMap();
 
     /* Calculate plane verticies + indicies */
@@ -85,7 +107,7 @@ void Mesh::generateMesh() {
             indicies[base + 3] = (z * (worldDimX + 1)) + x;
             indicies[base + 4] = ((z + 1) * (worldDimX + 1)) + x;
             indicies[base + 5] = ((z + 1) * (worldDimX + 1)) + (x + 1);
-            std::cout << "(" << x << ", " << z << "):" << base << "\t(" << (int)indicies[base] << ", " << (int)indicies[base + 1] << ", " << (int)indicies[base + 2] << ") (" << (int)indicies[base + 3] << ", " << (int)indicies[base + 4] << ", " << (int)indicies[base + 5] << ")" << std::endl;
+            // std::cout << "(" << x << ", " << z << "):" << base << "\t(" << (int)indicies[base] << ", " << (int)indicies[base + 1] << ", " << (int)indicies[base + 2] << ") (" << (int)indicies[base + 3] << ", " << (int)indicies[base + 4] << ", " << (int)indicies[base + 5] << ")" << std::endl;
         }
     }
 
