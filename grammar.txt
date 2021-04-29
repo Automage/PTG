@@ -1,0 +1,24 @@
+# Dimensions x z
+50 50
+
+# Terrain characteristics
+# height (0.0+), roughness (1-15), mountain density (1.0 - 10.0),
+# water bodies (0/1), water level (-inf to +inf)
+15 5 3.0 1 0.0
+
+# Encourage mountain
+# x z height width
+M 34 34 15 40
+
+# Encourage lake
+# x z width
+L 0 0 20
+
+# Encourage river/stream
+# x_1 z_1 x_2 z_2
+R 0 0 34 34
+
+# Custom Color 
+# terrain_r, terrain_g, terrain_b (0.0 - 1.0)
+# water_r, water_g, water_b (0.0 - 1.0)
+C 0.92 0.71 0.20 0.26 0.51 0.64

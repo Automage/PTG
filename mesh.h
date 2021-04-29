@@ -21,10 +21,14 @@ class Mesh {
         GLushort *indicies;
         int vertsSize;
         int indiciesSize;
+        float r, g, b;
 
         Mesh(int dimX, int dimZ, uint32_t seed, float maxh, float offset, float freq, int octaves);
         ~Mesh();
         void generateMesh();
+        void encourageMountain(int c_x, int c_z, float height, float width);
+        void encourageLake(int c_x, int c_z, float width);
+        void encourageRiver(int x0, int z0, int x1, int z1);
     
     private:
         // Mesh specifiers
@@ -37,6 +41,7 @@ class Mesh {
         
         void generateGaussianHeightMap();
         void generateHeightMap();
+        float gaussian2D(int x, int z, int c_x, int c_z, float height, float var_x, float var_z);
 
 };
 

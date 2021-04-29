@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <random>
+#include <cmath>
 
 #include "PerlinNoise/PerlinNoise.hpp"
 
@@ -17,7 +18,8 @@ Mesh::Mesh(int dimX, int dimZ, uint32_t s, float maxh, float offset, float freq,
           : worldDimX(dimX), worldDimZ(dimZ), seed(s), max_height(maxh), offset(offset), 
             perlin_freq(freq), perlin_octaves(octaves) {
     // Init heightmap
-    hmap = new float[worldDimX * worldDimZ];
+    // () initializes to 0
+    hmap = new float[worldDimX * worldDimZ]();
 }
 
 Mesh::~Mesh() {
@@ -51,7 +53,8 @@ void Mesh::generateHeightMap() {
             // TODO: Introduce clamp
             // float r = perlin.accumulatedOctaveNoise2D_0_1(x / fx, z / fz, perlin_octaves);
             float r = perlin.accumulatedOctaveNoise2D_0_1(x / fx, z / fz, perlin_octaves);
-            hmap[(z * worldDimX) + x] = (r * max_height) - (max_height / 2.0);
+            // += as it builds upon encourager's height values
+            hmap[(z * worldDimX) + x] += (r * max_height) - (max_height / 2.0);
         }
     }
 }
@@ -71,7 +74,6 @@ void Mesh::generateMesh() {
     indicies = new GLushort[indiciesSize * sizeof(GLushort)];
 
     // Calculate verticies (+ 1 for tiles -> verticies)
-    std::cout << worldDimX << ", " << worldDimZ << std::endl;
     int w = 0;
     for (int z = 0; z < (worldDimZ + 1); z++) {
         for (int x = 0; x < (worldDimX + 1); x++) {
@@ -111,5 +113,27 @@ void Mesh::generateMesh() {
             // std::cout << "(" << x << ", " << z << "):" << base << "\t(" << (int)indicies[base] << ", " << (int)indicies[base + 1] << ", " << (int)indicies[base + 2] << ") (" << (int)indicies[base + 3] << ", " << (int)indicies[base + 4] << ", " << (int)indicies[base + 5] << ")" << std::endl;
         }
     }
+
+}
+
+float Mesh::gaussian2D(int x, int z, int c_x, int c_z, float height, float var_x, float var_z) {
+    float exponent = -(powf(x - c_x, 2.0)/var_x + powf(z - c_z, 2.0)/var_z);
+    return height * expf(exponent);
+}
+
+void Mesh::encourageMountain(int c_x, int c_z, float height, float width) {
+    for (int z = 0; z < worldDimZ; z++) {
+        for (int x = 0; x < worldDimX; x++) {
+            // += as it builds upon other encourager's/perlin noise height values
+            hmap[(z * worldDimX) + x] += gaussian2D(x, z, c_x, c_z, height, width, width);
+        }
+    }
+}
+
+void Mesh::encourageLake(int x, int z, float width) {
+
+}
+
+void Mesh::encourageRiver(int x0, int z0, int x1, int z1) {
 
 }

@@ -32,7 +32,7 @@ float aspect = windowWidth / windowHeight;
 float zNear = 1.0;
 float zFar = 100.0;
 GLfloat cameraX = 0, cameraZ = -7, cameraY = 0; // Starting camera coordinates
-float cameraVX = 0.25, cameraVZ = 0.25, cameraVY = 0.25;
+float cameraVX = 0.4, cameraVZ = 0.4, cameraVY = 0.4;
 float cameraRotateX = 0, cameraRotateY = 0;
 GLfloat cameraRotateV = 10.0;
 
@@ -43,10 +43,18 @@ GLfloat myModelMat[4][4] = {
 	{ 0, -1, 0, 1 }
 };
 
-/* Terrain Mesh */
+/* Mesh variables*/
 bool generateWater = false;
 Mesh *terrain_mesh;
 Mesh *water_mesh;
+
+/* Color constants */
+#define DEFAULT_TERRAIN_R 0.92
+#define DEFAULT_TERRAIN_G 0.71
+#define DEFAULT_TERRAIN_B 0.20
+#define DEFAULT_WATER_R 0.0
+#define DEFAULT_WATER_G 0.0
+#define DEFAULT_WATER_B 1.0
 
 /**
  * @brief Generate meshes from grammar file
@@ -80,6 +88,7 @@ int generateFromGrammar(std::string filename) {
 			iss >> dimX >> dimZ;
 			std::cout << "dimx: " << dimX << ", dimZ: " << dimZ << std::endl; 
 			dimensionCheck = true;
+
 		} else if (!terrainCheck) {
 			// Obtain terrain characteristics second
 			iss >> height >> roughness >> density >> gen_water >> water_level;
@@ -89,30 +98,75 @@ int generateFromGrammar(std::string filename) {
 			// Create meshes
 			// TEMP: rand() does not prodice a 32 bit random number
 			terrain_mesh = new Mesh(dimX, dimZ, rand(), height, 0.0, density, roughness);
-			terrain_mesh->generateMesh();
+			terrain_mesh->r = DEFAULT_TERRAIN_R;
+			terrain_mesh->g = DEFAULT_TERRAIN_G;
+			terrain_mesh->b = DEFAULT_TERRAIN_B;
 			
 			if (gen_water == 1) {
 				generateWater = true;
 				water_mesh = new Mesh(dimX, dimZ, rand(), 0.0, water_level, 0.0, 1);
-				water_mesh->generateMesh();
+				water_mesh->r = DEFAULT_WATER_R;
+				water_mesh->g = DEFAULT_WATER_G;
+				water_mesh->b = DEFAULT_WATER_B;
 			}
 
 			terrainCheck = true;
+
 		} else {
-			// Encouragers 
-			// (Encourage certain features in terrain)
+			// Encouragers (Encourage certain features in terrain)
 			std::string token;
 			iss >> token;
+
 			if (token == "M") {
-				// TODO: Encourage mountain
+				// Encourage mountain
+				int x, z;
+				float height, width;
+
+				iss >> x >> z >> height >> width;
+				terrain_mesh->encourageMountain(x, z, height, width);
+
+				std::cout << "(Mountain) Location: (" << x << ", " << z << "), Height: " 
+						  << height << ", Width: " << width << std::endl;
+
 			} else if (token == "L") {
-				// TODO: Encourage lake
+				// Encourage lake
+				int x, z;
+				float width;
+
+				iss >> x >> z >> width;
+				terrain_mesh->encourageLake(x, z, width);
+
+				std::cout << "(Lake) Location: (" << x << ", " << z << "), Width: " << width << std::endl;
+
 			} else if (token == "R") {
 				// TODO: Encourage river
+			} else if (token == "C") {
+				// Custom terrain color
+				if (generateWater) {
+					iss >> terrain_mesh->r >> terrain_mesh->g >> terrain_mesh->b 
+					    >> water_mesh->r >> water_mesh->g >> water_mesh->b; 
+					std::cout << "(Color) Terrain: (" << terrain_mesh->r << ", " << terrain_mesh->g 
+							  << ", " << terrain_mesh->b << ") Water: (" << water_mesh->r << ", " 
+							  << water_mesh->g << ", " << water_mesh->b << ")" << std::endl;
+				} else {
+					iss >> terrain_mesh->r >> terrain_mesh->g >> terrain_mesh->b; 
+					std::cout << "(Color) Terrain: (" << terrain_mesh->r << ", " << terrain_mesh->g 
+							  << ", " << terrain_mesh->b << ")" << std::endl;
+				}
+				
+			} else {
+				// Unknown syntax
+				// std::cout << "ERROR: Unknown grammar: "<< token << std::endl;
+				// return 1;
 			}
 		}
 
 	}
+
+	// Generate Meshes
+	terrain_mesh->generateMesh();
+	if (generateWater)
+		water_mesh->generateMesh();
 
 	return 0;
 }
@@ -250,26 +304,28 @@ void display()
     /* Enable client */
 	glEnableClientState(GL_VERTEX_ARRAY);
 	
-	/* Draw the world */
+	/* Draw Terrain */
 	glVertexPointer(3, GL_FLOAT, 0, terrain_mesh->verts);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0.0);
-	glColor3f(0.92, 0.71, 0.20);
+	glColor3f(terrain_mesh->r, terrain_mesh->g, terrain_mesh->b);
 	glDrawElements(GL_TRIANGLES, terrain_mesh->indiciesSize, GL_UNSIGNED_SHORT, terrain_mesh->indicies);
 	glColor3f(0.0, 0.0, 0.0);
 	// DO NOT USE GL_LINE_STRIP: Causes weird random lines
 	glDrawElements(GL_LINES, terrain_mesh->indiciesSize, GL_UNSIGNED_SHORT, terrain_mesh->indicies);
 
-	glVertexPointer(3, GL_FLOAT, 0, water_mesh->verts);
-	glTranslatef(0.0, 0.0, 0.0);
-	glColor3f(0.0, 0.0, 1.0);
-	glDrawElements(GL_TRIANGLES, water_mesh->indiciesSize, GL_UNSIGNED_SHORT, water_mesh->indicies);
-	glColor3f(0.0, 0.0, 0.0);
-	// DO NOT USE GL_LINE_STRIP: Causes weird random lines
-	glDrawElements(GL_LINES, water_mesh->indiciesSize, GL_UNSIGNED_SHORT, terrain_mesh->indicies);
+	/* Draw Water */
+	if (generateWater) {
+		glVertexPointer(3, GL_FLOAT, 0, water_mesh->verts);
+		glTranslatef(0.0, 0.0, 0.0);
+		glColor3f(water_mesh->r, water_mesh->g, water_mesh->b);
+		glDrawElements(GL_TRIANGLES, water_mesh->indiciesSize, GL_UNSIGNED_SHORT, water_mesh->indicies);
+		glColor3f(0.0, 0.0, 0.0);
+		// DO NOT USE GL_LINE_STRIP: Causes weird random lines
+		glDrawElements(GL_LINES, water_mesh->indiciesSize, GL_UNSIGNED_SHORT, terrain_mesh->indicies);
 
-	glPopMatrix();
-	
+		glPopMatrix();
+	}
 	/* Disable client */
 	glDisableClientState(GL_VERTEX_ARRAY);
 
@@ -305,17 +361,11 @@ int main(int argc, char **argv) {
 
 	// Generate Meshes
 	std::string grammar_file(argv[1]);
-	generateFromGrammar(grammar_file);
-	// // TEMP: rand() does not prodice a 32 bit random number
-	// srand(time(NULL));
-	// terrain_mesh = new Mesh(50, 50, rand(), 15.0, 0.0, 2.0, 1);
-	// terrain_mesh->generateMesh();
+	if (generateFromGrammar(grammar_file) != 0) {
+		exit(1);
+	}
 
-	// water_mesh = new Mesh(50, 50, rand(), 0.0, -1.0, 0.0, 1);
-	// water_mesh->generateMesh();
-
-	std::cout << terrain_mesh->vertsSize << std::endl;
-	std::cout << terrain_mesh->indiciesSize << std::endl;
+	std::cout << std::endl << "Verts: " << terrain_mesh->vertsSize << std::endl;
 	
 	// std::cout << "Indicies:" << std::endl;
 	// for (int i = 0; i < terrain_mesh->indiciesSize; i++)

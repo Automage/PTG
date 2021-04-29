@@ -16,7 +16,7 @@
         {
             "label": "run",
             "type": "shell",
-            "command": "./ptg grammar-example.txt",
+            "command": "./ptg grammar.txt",
             "problemMatcher": [],
             "group": {
                 "kind": "test",
