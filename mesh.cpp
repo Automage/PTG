@@ -14,6 +14,9 @@
 
 #include "PerlinNoise/PerlinNoise.hpp"
 
+#define LAKE_DEPRESSION 20.0
+#define RIVER_DEPRESSION 10.0
+
 /* Helper functions */
 
 // 2D Gaussian function
@@ -176,7 +179,7 @@ void Mesh::encourageLake(int c_x, int c_z, float width) {
         for (int x = 0; x < worldDimX; x++) {
             // Apply negative gaussian curve to heightmap
             // += as it builds upon other encourager's/perlin noise height values
-            hmap[(z * worldDimX) + x] += gaussian2D(x, z, c_x, c_z, -20.0, width, width);
+            hmap[(z * worldDimX) + x] += gaussian2D(x, z, c_x, c_z, -LAKE_DEPRESSION, width, width);
         }
     }
 }
@@ -189,7 +192,7 @@ void Mesh::encourageRiver(int x0, int z0, int x1, int z1) {
             // += as it builds upon other encourager's/perlin noise height values
             float d = distanceFromSegment(x, z, x0, z0, x1, z1);
             if (d < 1.0) 
-                hmap[(z * worldDimX) + x] += -20.0;
+                hmap[(z * worldDimX) + x] += -RIVER_DEPRESSION;
             
         }
     }

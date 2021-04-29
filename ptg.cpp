@@ -376,22 +376,6 @@ int main(int argc, char **argv) {
 
 	std::cout << std::endl << "Verts: " << terrain_mesh->vertsSize << std::endl;
 	
-	// std::cout << "Indicies:" << std::endl;
-	// for (int i = 0; i < terrain_mesh->indiciesSize; i++)
-	// {
-	// 	std::cout << (int)(terrain_mesh->indicies[i]) << " ";
-	// 	if ((i+1) % 3 == 0) std::cout << std::endl;
-	// 	if ((i+1) % 6 == 0) std::cout << std::endl;
-	// }
-
-	// std::cout << "Verticies:" << std::endl;
-	// for (int i = 0; i < terrain_mesh->vertsSize; i++)
-	// {
-	// 	std::cout << (float)(terrain_mesh->verts[i]) << " ";
-	// 	if ((i+1) % 3 == 0) std::cout << std::endl;
-	// 	if ((i+1) % 9 == 0) std::cout << std::endl;
-	// }
-
 	/* Start the main GLUT loop */
     glutMainLoop();
 
