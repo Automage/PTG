@@ -139,7 +139,16 @@ int generateFromGrammar(std::string filename) {
 				std::cout << "(Lake) Location: (" << x << ", " << z << "), Width: " << width << std::endl;
 
 			} else if (token == "R") {
-				// TODO: Encourage river
+				// Encourage river
+				int x0, z0, x1, z1;
+				// float width;
+
+				iss >> x0 >> z0 >> x1 >> z1;
+				terrain_mesh->encourageRiver(x0, z0, x1, z1);
+
+				std::cout << "(River) Start point: (" << x0 << ", " << z0 << "), End point: (" 
+						  << x1 << ", " << z1 << ")" << std::endl;
+
 			} else if (token == "C") {
 				// Custom terrain color
 				if (generateWater) {

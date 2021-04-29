@@ -182,5 +182,15 @@ void Mesh::encourageLake(int c_x, int c_z, float width) {
 }
 
 void Mesh::encourageRiver(int x0, int z0, int x1, int z1) {
-
+    std::cout << "test: " << distanceFromSegment(0, 10, 0, 0, 50, 50) << std::endl;
+    for (int z = 0; z < worldDimZ; z++) {
+        for (int x = 0; x < worldDimX; x++) {
+            // Apply distance function of every point to line segment (river)
+            // += as it builds upon other encourager's/perlin noise height values
+            float d = distanceFromSegment(x, z, x0, z0, x1, z1);
+            if (d < 1.0) 
+                hmap[(z * worldDimX) + x] += -20.0;
+            
+        }
+    }
 }
