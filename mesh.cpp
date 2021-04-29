@@ -130,8 +130,13 @@ void Mesh::encourageMountain(int c_x, int c_z, float height, float width) {
     }
 }
 
-void Mesh::encourageLake(int x, int z, float width) {
-
+void Mesh::encourageLake(int c_x, int c_z, float width) {
+    for (int z = 0; z < worldDimZ; z++) {
+        for (int x = 0; x < worldDimX; x++) {
+            // += as it builds upon other encourager's/perlin noise height values
+            hmap[(z * worldDimX) + x] += gaussian2D(x, z, c_x, c_z, -20.0, width, width);
+        }
+    }
 }
 
 void Mesh::encourageRiver(int x0, int z0, int x1, int z1) {
