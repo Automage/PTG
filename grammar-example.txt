@@ -2,8 +2,9 @@
 50 50
 
 # Terrain characteristics
-# height, roughness, mountain density, water level
-15 64 34 0
+# height (0.0+), roughness (1-15), mountain density (0.0 - 10.0),
+# water bodies (0/1), water level (-inf to +inf)
+15 5 3.0 1 -1.0
 
 # Encourage mountain
 # x z height width

@@ -8,8 +8,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-// #include <random>
-
+#include <string>
+#include <fstream>
+#include <sstream>
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -43,8 +44,78 @@ GLfloat myModelMat[4][4] = {
 };
 
 /* Terrain Mesh */
+bool generateWater = false;
 Mesh *terrain_mesh;
 Mesh *water_mesh;
+
+/**
+ * @brief Generate meshes from grammar file
+ * 
+ * @param filename grammar file
+ * @return int return code (0 for success)
+ */
+int generateFromGrammar(std::string filename) {
+	// Mesh variables
+	bool dimensionCheck, terrainCheck;
+	int dimX, dimZ;
+	float height, density, water_level;
+	int gen_water, roughness;
+
+	srand(time(NULL));
+
+	// Read grammar file
+	std::ifstream infile(filename);
+	std::string line;
+	
+	while (std::getline(infile, line)) {
+		// Ignore comments
+		if (line[0] == '#' || line.empty())
+			continue;
+
+		std::istringstream iss(line);
+
+		// Read and set properties
+		if (!dimensionCheck) {
+			// Check terrain dimensions first
+			iss >> dimX >> dimZ;
+			std::cout << "dimx: " << dimX << ", dimZ: " << dimZ << std::endl; 
+			dimensionCheck = true;
+		} else if (!terrainCheck) {
+			// Obtain terrain characteristics second
+			iss >> height >> roughness >> density >> gen_water >> water_level;
+			std::cout << "height: " << height << ", roughness: " << roughness << ", mountain density: " << density 
+					  << ", generate water: " << (gen_water == 1 ? "yes" : "no") << ", water level: " << water_level << std::endl; 
+			
+			// Create meshes
+			// TEMP: rand() does not prodice a 32 bit random number
+			terrain_mesh = new Mesh(dimX, dimZ, rand(), height, 0.0, density, roughness);
+			terrain_mesh->generateMesh();
+			
+			if (gen_water == 1) {
+				generateWater = true;
+				water_mesh = new Mesh(dimX, dimZ, rand(), 0.0, water_level, 0.0, 1);
+				water_mesh->generateMesh();
+			}
+
+			terrainCheck = true;
+		} else {
+			// Encouragers 
+			// (Encourage certain features in terrain)
+			std::string token;
+			iss >> token;
+			if (token == "M") {
+				// TODO: Encourage mountain
+			} else if (token == "L") {
+				// TODO: Encourage lake
+			} else if (token == "R") {
+				// TODO: Encourage river
+			}
+		}
+
+	}
+
+	return 0;
+}
 
 void openGLInit() {
 	/* Set clear color */
@@ -210,7 +281,13 @@ void display()
 }
 
 int main(int argc, char **argv) {
-    /* Initialize the GLUT window */
+    // Check for grammar file
+	if (argc != 2) {
+		std::cout << "Please provide grammar file..." << std::endl;
+		exit(1);
+	}
+
+	/* Initialize the GLUT window */
 	glutInit(&argc, argv);
 	glutInitWindowSize(windowWidth, windowHeight);
 	glutInitWindowPosition(30, 30);
@@ -227,13 +304,15 @@ int main(int argc, char **argv) {
 	glutSpecialFunc(special);
 
 	// Generate Meshes
-	// TEMP: rand() does not prodice a 32 bit random number
-	srand(time(NULL));
-	terrain_mesh = new Mesh(50, 50, rand(), 15.0, 0.0, 2.0, 1);
-	terrain_mesh->generateMesh();
+	std::string grammar_file(argv[1]);
+	generateFromGrammar(grammar_file);
+	// // TEMP: rand() does not prodice a 32 bit random number
+	// srand(time(NULL));
+	// terrain_mesh = new Mesh(50, 50, rand(), 15.0, 0.0, 2.0, 1);
+	// terrain_mesh->generateMesh();
 
-	water_mesh = new Mesh(50, 50, rand(), 0.0, -1.0, 0.0, 1);
-	water_mesh->generateMesh();
+	// water_mesh = new Mesh(50, 50, rand(), 0.0, -1.0, 0.0, 1);
+	// water_mesh->generateMesh();
 
 	std::cout << terrain_mesh->vertsSize << std::endl;
 	std::cout << terrain_mesh->indiciesSize << std::endl;
