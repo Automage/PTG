@@ -1,0 +1,18 @@
+# x z
+50 50
+
+# Terrain characteristics
+# height, roughness, mountain density, water level
+15 64 34 0
+
+# Encourage mountain
+# x z height width
+M 34 34 15 40
+
+# Encourage lake
+# x z width
+M 0 0 20
+
+# Encourage river/stream
+# x_1 z_1 x_2 z_2
+R 0 0 34 34

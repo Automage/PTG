@@ -22,11 +22,15 @@ class Mesh {
         int vertsSize;
         int indiciesSize;
 
-        Mesh(int dimX, int dimZ, uint32_t seed);
+        Mesh(int dimX, int dimZ, uint32_t seed, float maxh, float offset, float freq, int octaves);
         ~Mesh();
         void generateMesh();
     
     private:
+        // Mesh specifiers
+        int perlin_octaves;
+        float perlin_freq, max_height, offset;
+
         // Heightmap
         float *hmap;
         uint32_t seed;

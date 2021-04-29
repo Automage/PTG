@@ -8,7 +8,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-#include <random>
+// #include <random>
+
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -42,8 +43,8 @@ GLfloat myModelMat[4][4] = {
 };
 
 /* Terrain Mesh */
-Mesh *mesh;
-// Mesh *mesh2;
+Mesh *terrain_mesh;
+Mesh *water_mesh;
 
 void openGLInit() {
 	/* Set clear color */
@@ -179,22 +180,22 @@ void display()
 	glEnableClientState(GL_VERTEX_ARRAY);
 	
 	/* Draw the world */
-	glVertexPointer(3, GL_FLOAT, 0, mesh->verts);
+	glVertexPointer(3, GL_FLOAT, 0, terrain_mesh->verts);
 	glPushMatrix();
 	glTranslatef(0.0, 0.0, 0.0);
 	glColor3f(0.92, 0.71, 0.20);
-	glDrawElements(GL_TRIANGLES, mesh->indiciesSize, GL_UNSIGNED_SHORT, mesh->indicies);
+	glDrawElements(GL_TRIANGLES, terrain_mesh->indiciesSize, GL_UNSIGNED_SHORT, terrain_mesh->indicies);
 	glColor3f(0.0, 0.0, 0.0);
 	// DO NOT USE GL_LINE_STRIP: Causes weird random lines
-	glDrawElements(GL_LINES, mesh->indiciesSize, GL_UNSIGNED_SHORT, mesh->indicies);
+	glDrawElements(GL_LINES, terrain_mesh->indiciesSize, GL_UNSIGNED_SHORT, terrain_mesh->indicies);
 
-	// glVertexPointer(3, GL_FLOAT, 0, mesh2->verts);
-	// glTranslatef(0.0, 0.0, 0.0);
-	// glColor3f(0.0, 0.0, 1.0);
-	// glDrawElements(GL_TRIANGLES, mesh2->indiciesSize, GL_UNSIGNED_SHORT, mesh2->indicies);
-	// glColor3f(0.0, 0.0, 0.0);
-	// // DO NOT USE GL_LINE_STRIP: Causes weird random lines
-	// glDrawElements(GL_LINES, mesh->indiciesSize, GL_UNSIGNED_SHORT, mesh->indicies);
+	glVertexPointer(3, GL_FLOAT, 0, water_mesh->verts);
+	glTranslatef(0.0, 0.0, 0.0);
+	glColor3f(0.0, 0.0, 1.0);
+	glDrawElements(GL_TRIANGLES, water_mesh->indiciesSize, GL_UNSIGNED_SHORT, water_mesh->indicies);
+	glColor3f(0.0, 0.0, 0.0);
+	// DO NOT USE GL_LINE_STRIP: Causes weird random lines
+	glDrawElements(GL_LINES, water_mesh->indiciesSize, GL_UNSIGNED_SHORT, terrain_mesh->indicies);
 
 	glPopMatrix();
 	
@@ -225,28 +226,30 @@ int main(int argc, char **argv) {
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(special);
 
-	// Generate Mesh
-	mesh = new Mesh(50, 50, std::default_random_engine::default_seed);
-	mesh->generateMesh();
+	// Generate Meshes
+	// TEMP: rand() does not prodice a 32 bit random number
+	srand(time(NULL));
+	terrain_mesh = new Mesh(50, 50, rand(), 15.0, 0.0, 2.0, 1);
+	terrain_mesh->generateMesh();
 
-	// mesh2 = new Mesh(50, 50, 1023);
-	// mesh2->generateMesh();
+	water_mesh = new Mesh(50, 50, rand(), 0.0, -1.0, 0.0, 1);
+	water_mesh->generateMesh();
 
-	std::cout << mesh->vertsSize << std::endl;
-	std::cout << mesh->indiciesSize << std::endl;
+	std::cout << terrain_mesh->vertsSize << std::endl;
+	std::cout << terrain_mesh->indiciesSize << std::endl;
 	
 	// std::cout << "Indicies:" << std::endl;
-	// for (int i = 0; i < mesh->indiciesSize; i++)
+	// for (int i = 0; i < terrain_mesh->indiciesSize; i++)
 	// {
-	// 	std::cout << (int)(mesh->indicies[i]) << " ";
+	// 	std::cout << (int)(terrain_mesh->indicies[i]) << " ";
 	// 	if ((i+1) % 3 == 0) std::cout << std::endl;
 	// 	if ((i+1) % 6 == 0) std::cout << std::endl;
 	// }
 
 	// std::cout << "Verticies:" << std::endl;
-	// for (int i = 0; i < mesh->vertsSize; i++)
+	// for (int i = 0; i < terrain_mesh->vertsSize; i++)
 	// {
-	// 	std::cout << (float)(mesh->verts[i]) << " ";
+	// 	std::cout << (float)(terrain_mesh->verts[i]) << " ";
 	// 	if ((i+1) % 3 == 0) std::cout << std::endl;
 	// 	if ((i+1) % 9 == 0) std::cout << std::endl;
 	// }
