@@ -41,7 +41,6 @@ class Mesh {
         
         void generateGaussianHeightMap();
         void generateHeightMap();
-        float gaussian2D(int x, int z, int c_x, int c_z, float height, float var_x, float var_z);
 
 };
 

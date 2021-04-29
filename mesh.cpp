@@ -10,9 +10,54 @@
 #include <iostream>
 #include <random>
 #include <cmath>
+#include <utility>
 
 #include "PerlinNoise/PerlinNoise.hpp"
 
+/* Helper functions */
+
+// 2D Gaussian function
+float gaussian2D(int x, int z, int c_x, int c_z, float height, float var_x, float var_z) {
+    float exponent = -(powf(x - c_x, 2.0)/var_x + powf(z - c_z, 2.0)/var_z);
+    return height * expf(exponent);
+}
+
+// Dot product
+float dot(std::pair<float, float> v, std::pair<float, float> w) {
+    return (v.first * w.first) + (v.second * w.second);
+}
+
+// Distance between two points
+float dist(std::pair<float, float> v, std::pair<float, float> w) {
+    std::pair<float, float> diff(v.first - w.first, v.second - w.second);
+    return sqrtf(dot(diff, diff));
+}
+
+// Returns distance between point and line segment
+// p - point, s0 - segment point 0, s1 - segment point 1
+// Referenced from https://geomalgorithms.com/a02-_lines.html
+float distanceFromSegment(int p_x, int p_z, int s0_x, int s0_z, int s1_x, int s1_z) {
+    std::pair<float, float> p(p_x, p_z);
+    std::pair<float, float> s0(s0_x, s0_z);
+    std::pair<float, float> s1(s1_x, s1_z);
+
+    std::pair<float, float> v(s1.first - s0.first, s1.second - s0.second);
+    std::pair<float, float> w(p.first - s0.first, p.first - s0.first);
+
+    float c1 = dot(v, w);
+    if (c1 <= 0)
+        return dist(p, s0);
+
+    float c2 = dot(v, v);
+    if (c2 <= c1)
+        return dist(p, s1);
+
+    float b = c1 / c2;
+    std::pair<float, float> pb(s0.first + (b * v.first), s0.second + (b * v.second));
+    return dist(p, pb);
+}
+
+/* Mesh methods */
 
 Mesh::Mesh(int dimX, int dimZ, uint32_t s, float maxh, float offset, float freq, int octaves) 
           : worldDimX(dimX), worldDimZ(dimZ), seed(s), max_height(maxh), offset(offset), 
@@ -116,14 +161,10 @@ void Mesh::generateMesh() {
 
 }
 
-float Mesh::gaussian2D(int x, int z, int c_x, int c_z, float height, float var_x, float var_z) {
-    float exponent = -(powf(x - c_x, 2.0)/var_x + powf(z - c_z, 2.0)/var_z);
-    return height * expf(exponent);
-}
-
 void Mesh::encourageMountain(int c_x, int c_z, float height, float width) {
     for (int z = 0; z < worldDimZ; z++) {
         for (int x = 0; x < worldDimX; x++) {
+            // Apply gaussian curve to heightmap
             // += as it builds upon other encourager's/perlin noise height values
             hmap[(z * worldDimX) + x] += gaussian2D(x, z, c_x, c_z, height, width, width);
         }
@@ -133,6 +174,7 @@ void Mesh::encourageMountain(int c_x, int c_z, float height, float width) {
 void Mesh::encourageLake(int c_x, int c_z, float width) {
     for (int z = 0; z < worldDimZ; z++) {
         for (int x = 0; x < worldDimX; x++) {
+            // Apply negative gaussian curve to heightmap
             // += as it builds upon other encourager's/perlin noise height values
             hmap[(z * worldDimX) + x] += gaussian2D(x, z, c_x, c_z, -20.0, width, width);
         }
