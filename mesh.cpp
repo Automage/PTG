@@ -191,8 +191,10 @@ void Mesh::encourageRiver(int x0, int z0, int x1, int z1) {
             // Apply distance function of every point to line segment (river)
             // += as it builds upon other encourager's/perlin noise height values
             float d = distanceFromSegment(x, z, x0, z0, x1, z1);
-            if (d < 1.0) 
-                hmap[(z * worldDimX) + x] += -RIVER_DEPRESSION;
+            if (d < 0.2)
+                hmap[(z * worldDimX) + x] += -(RIVER_DEPRESSION);
+            else
+                hmap[(z * worldDimX) + x] += -(RIVER_DEPRESSION)/powf(d, 2.0);
             
         }
     }
